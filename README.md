@@ -4,8 +4,8 @@ RPG 製作大師 MV 的插件腳本，目前都是小腳本居多。
 ## 目錄
 * [總列表](#總列表)
 * [標示法說明](#標示法說明)
-* [Camera.js](#Camerajs)
-* [TrackMove.js](#TrackMovejs)
+* [Camera.js](#camerajs)
+* [TrackMove.js](#trackmovejs)
 
 ## 總列表
 | 名稱 | 插件功能 | 最後更新 |
