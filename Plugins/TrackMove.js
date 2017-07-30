@@ -7,40 +7,72 @@
  * @author 羊羽
  * 
  * @param player tag
- * @desc 主角的預設標記（[0, inf)Z:Number）
- * @default 1
- * 
- * @param follower tag
- * @desc 主角跟隨者的預設標記（[0,inf)Z:Number）
+ * @desc 主角的標記（[0, inf)Z:Number）
  * @default 2
  * 
- * @param default tag
- * @desc 預設單位標記（[0, inf)Z:Number）
- * @default 0
+ * @param follower tag
+ * @desc 跟隨者單位標記（[0, inf)Z:Number）
+ * @default 3
  * 
- * @param default track
- * @desc 預設追蹤的標記（[0, inf)Z:Number）
- * @default 0
+ * @param follower track
+ * @desc 跟隨者單位追蹤的標記（[0, inf)Z:Number）
+ * @default 2
  * 
- * @param default move
- * @desc 預設無目標時的移動模式（Refer to help:String）
+ * @param follower move (no target)
+ * @desc 跟隨者單位無目標時的移動模式（Refer to help:String）
  * @default random
  * 
- * @param default vision range
- * @desc 預設視野的範圍（[0,inf)Z:Number）
- * @default 5
- * 
- * @param default miss range
- * @desc 預設放棄追蹤的範圍（[0,inf)Z:Number）
- * @default 6
- * 
- * @param default found balloon
- * @desc 發現目標時的心情符號（[1,inf)Z:Number）
+ * @param follower toward player
+ * @desc 當玩家移動時、追蹤玩家（[0, 1]Z:Boolean）
  * @default 1
  * 
- * @param default miss balloon
- * @desc 放棄追蹤時的心情符號（[1,inf)Z:Number）
+ * @param follower vision range
+ * @desc 跟隨者單位視野的範圍（[0,inf)Z:Number）
+ * @default 5
+ * 
+ * @param follower miss range
+ * @desc 跟隨者單位放棄追蹤的範圍（[0,inf)Z:Number）
+ * @default 6
+ * 
+ * @param follower found balloon
+ * @desc 跟隨者單位發現目標時的心情符號（[1,inf)Z:Number）
+ * @default 1
+ * 
+ * @param follower miss balloon
+ * @desc 跟隨者單位放棄追蹤時的心情符號（[1,inf)Z:Number）
  * @default 8
+ * 
+ * @param unit tag
+ * @desc 其他單位標記（[0, inf)Z:Number）
+ * @default 1
+ * 
+ * @param unit track
+ * @desc 其他單位追蹤的標記（[0, inf)Z:Number）
+ * @default 0
+ * 
+ * @param unit move (no target)
+ * @desc 其他單位無目標時的移動模式（Refer to help:String）
+ * @default random
+ * 
+ * @param unit vision range
+ * @desc 其他單位視野的範圍（[0,inf)Z:Number）
+ * @default 5
+ * 
+ * @param unit miss range
+ * @desc 其他單位放棄追蹤的範圍（[0,inf)Z:Number）
+ * @default 6
+ * 
+ * @param unit found balloon
+ * @desc 其他單位發現目標時的心情符號（[1,inf)Z:Number）
+ * @default 1
+ * 
+ * @param unit miss balloon
+ * @desc 其他單位放棄追蹤時的心情符號（[1,inf)Z:Number）
+ * @default 8
+ * 
+ * @param track rate
+ * @desc 追蹤時隨機移動的機率（[0, 1]R:Number）
+ * @default 0.2
  * 
  * @help
  * 【插件指令】
@@ -59,10 +91,18 @@
  * this.miss();                         //強制放棄追蹤
  * 
  * 【特殊參考值】
- * 插件常數 default move 的參考值：
- * stand: 固定不動
- * random: 隨機行走
+ * 插件常數 follower/unit move 的參考值：
+ * stand         固定不動
+ * random        隨機行走
+ *
+ * p.s.由於不使用 this.track(); 就不會有效果，
+ *     您可以將 unit 系列參數當作是 Event 的預設值。
  * 
+ * 【其他細節】
+ * 對於透明的跟隨者、事件不會處理
+ * 對於暫時消除的事件不會處理
+ * 對於透明的事件依然會處理
+ * 對於主角不論透明與否皆會處理
  * 
  */
 (function(){
@@ -70,14 +110,23 @@
   // 插件常數
   //==================================================================
   var parameters = PluginManager.parameters('TrackMove');
-  var PLAYER_TAG = Number(parameters["player tag"] || 1);
-  var FOLLOWER_TAG = Number(parameters["follower tag"] || 2);
-  var DEFAULT_TAG = Number(parameters["default tag"] || 0);
-  var DEFAULT_MOVE = String(parameters["default move"] || "random");
-  var DEFAULT_VISION_RANGE = Number(parameters["default vision range"] || 6);
-  var DEFAULT_MISS_RANGE = Number(parameters["default miss range"] || 5);
-  var DEFAULT_FOUND_BALLON = Number(parameters["default found balloon"] || 1);
-  var DEFAULT_MISS_BALLON = Number(parameters["default miss balloon"] || 8);
+  var PLAYER_TAG = Number(parameters["player tag"] || 2);
+  var FOLLOWER_TAG = Number(parameters["follower tag"] || 3);
+  var FOLLOWER_TRACK = Number(parameters["follower track"] || 2);
+  var FOLLOWER_MOVE_NO_TARGET = String(parameters["follower move (no target)"] || "random");
+  var FOLLOWER_TOWARD_PLAYER = Boolean(Number(parameters["follower toward player"] || 1));
+  var FOLLOWER_VISION_RANGE = Number(parameters["follower vision range"] || 5);
+  var FOLLOWER_MISS_RANGE = Number(parameters["follower miss range"] || 6);
+  var FOLLOWER_FOUND_BALLOON = Number(parameters["follower found balloon"] || 1);
+  var FOLLOWER_MISS_BALLOON = Number(parameters["follower miss balloon"] || 8);
+  var UNIT_TAG = Number(parameters["unit tag"] || 1);
+  var UNIT_TRACK = Number(parameters["unit track"] || 0);
+  var UNIT_MOVE_NO_TARGET = String(parameters["unit move (no target)"] || "random");
+  var UNIT_VISION_RANGE = Number(parameters["unit vision range"] || 5);
+  var UNIT_MISS_RANGE = Number(parameters["unit miss range"] || 6);
+  var UNIT_FOUND_BALLOON = Number(parameters["unit found balloon"] || 1);
+  var UNIT_MISS_BALLOON = Number(parameters["unit miss balloon"] || 8);
+  var TRACK_RATE = Number(parameters["track rate"] || 0.2) * 100;
 
   //==================================================================
   // 插件指令
@@ -129,13 +178,13 @@
   Game_Character.prototype.initMembers = function() {
     _Game_Character_initMembers.call(this);
     this.trackMove = {
-      tag: DEFAULT_TAG,
-      track: -1,
-      visionRange: DEFAULT_VISION_RANGE,
-      missRange: DEFAULT_MISS_RANGE,
-      foundBalloon: DEFAULT_FOUND_BALLON,
-      missBalloon: DEFAULT_MISS_BALLON,
-      defaultMove: DEFAULT_MOVE,
+      tag: UNIT_TAG,
+      track: UNIT_TRACK,
+      visionRange: UNIT_VISION_RANGE,
+      missRange: UNIT_MISS_RANGE,
+      foundBalloon: UNIT_FOUND_BALLOON,
+      missBalloon: UNIT_MISS_BALLOON,
+      defaultMove: UNIT_MOVE_NO_TARGET,
       target: null
     };
   };
@@ -153,6 +202,10 @@
       else if(characterDistance < targetDistance) {
         this.found(character);
       }
+      //target isn't visible
+      else if(target.isTransparent()) {
+        this.found(character);
+      }
     }
     else {
       //found new target
@@ -163,11 +216,11 @@
   };
 
   Game_Character.prototype.found = function(target) {
-    this.turnTowardCharacter(target);
     if(this.trackMove.target != target) {
+      this.turnTowardCharacter(target);
       this.requestBalloon(this.trackMove.foundBalloon);
+      this.trackMove.target = target;
     }
-    this.trackMove.target = target;
   };
 
   Game_Character.prototype.miss = function() {
@@ -177,7 +230,12 @@
 
   Game_Character.prototype.track = function() {
     if(this.trackMove.target) {
-      this.moveTowardCharacter(this.trackMove.target);
+      if(Math.randomInt(100) < TRACK_RATE) {
+        this.moveRandom();
+      }
+      else {
+        this.moveTowardCharacter(this.trackMove.target);
+      }
     }
     else {
       switch(this.trackMove.defaultMove) {
@@ -204,7 +262,17 @@
   var _Game_Follower_initialize = Game_Follower.prototype.initialize;
   Game_Follower.prototype.initialize = function(memberIndex) {
     _Game_Follower_initialize.call(this, memberIndex);
-    this.trackMove.tag = FOLLOWER_TAG;
+    this.trackMove = {
+      tag: FOLLOWER_TAG,
+      track: FOLLOWER_TRACK,
+      visionRange: FOLLOWER_VISION_RANGE,
+      missRange: FOLLOWER_MISS_RANGE,
+      foundBalloon: FOLLOWER_FOUND_BALLOON,
+      missBalloon: FOLLOWER_MISS_BALLOON,
+      defaultMove: FOLLOWER_MOVE_NO_TARGET,
+      target: null
+    };
+    this._moveDistance = 0;
   };
 
   //==================================================================
@@ -219,10 +287,72 @@
   };
 
   //==================================================================
+  // 重載 Game_Follower 的更新
+  //------------------------------------------------------------------
+  // 分離 Follower 跟 Player 的速度關係
+  //==================================================================
+  var _Game_Follower_chaseCharacter = Game_Follower.prototype.chaseCharacter;
+  Game_Follower.prototype.chaseCharacter = function(character) {
+    if (FOLLOWER_TOWARD_PLAYER && !this.trackMove.target) {
+      this._moveDistance = $gameMap.distance(this._x, this._y, character._x, character._y);
+    }
+  };
+
+  Game_Follower.prototype.update = function() {
+    Game_Character.prototype.update.call(this);
+  };
+
+  Game_Follower.prototype.updateStop = function() {
+    if (this._locked) {
+      this.resetStopCount();
+    }
+    Game_Character.prototype.updateStop.call(this);
+    if (!this.isMoveRouteForcing()) {
+      this.updateSelfMovement();
+    }
+  };
+
+  Game_Follower.prototype.updateSelfMovement = function() {
+    if (this.isNearTheScreen()) {
+      if(this.checkStop(this.stopCountThreshold())) {
+        if(this._moveDistance > 0) {
+          this.moveTowardCharacter($gamePlayer);
+          this._moveDistance--;
+        }
+        else {
+          this.track();
+        }
+      }
+    }
+  };
+
+  Game_Follower.prototype.stopCountThreshold = function() {
+    return 30 * (5 - this.moveFrequency());
+  };
+
+  //==================================================================
+  // 檢查事件是否被消除
+  //==================================================================
+  Game_Event.prototype.isErased = function() {
+    return this._erased;
+  };
+
+  //==================================================================
+  // 檢查跟隨者是否可見
+  //==================================================================
+  var _Game_Follower_isVisible = Game_Follower.prototype.isVisible;
+  Game_Follower.prototype.isVisible = function() {
+    var visible = _Game_Follower_isVisible.call(this);
+    return visible && !this.isTransparent();
+  };
+
+  //==================================================================
   // 更新地圖上的追蹤狀況
   //==================================================================
   Scene_Map.prototype.updateTarckMove = function() {
-    var trackers = $gameMap.events();
+    var trackers = $gameMap.events().filter(function(event) {
+      return !event.isErased();
+    });
     $gamePlayer.followers().forEach(function(follower) {
       if(follower.isVisible()) {
         trackers.push(follower);
@@ -237,4 +367,5 @@
       });
     });
   };
+
 })();

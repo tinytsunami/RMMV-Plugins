@@ -7,11 +7,11 @@
  * @author 羊羽
  * 
  * @param zoom
- * @desc 縮放的比例（[0,2]R:Number）
+ * @desc 縮放的比例（(0,2]R:Number）
  * @default 2
  * 
  * @param duration
- * @desc 縮放到達指定比例所需的時間（[0,inf)R:Number）
+ * @desc 縮放到達指定比例所需的幀數（[1,inf)R:Number）
  * @default 60
  * 
  * @param speed
