@@ -420,6 +420,7 @@
       });
     }
   };
+
   //==================================================================
   // ARPG 道具
   /*------------------------------------------------------------------
@@ -977,14 +978,16 @@
   Sprite_ARPGKeys.prototype.updateAnimation = function() {
     var valid = false;
     var prop = this._prop();
-    if(prop.requestUpdate()) {
-      this.refresh();
-    }
     if(prop.item) {
-      valid = prop.canBeUse();
-      if(prop.item.isSkill()) {
-        var object = prop.item.object();
-        valid = valid && $gamePlayer.getARPGBattler().canPaySkillCost(object);  
+      if(prop.requestUpdate()) {
+      this.refresh();
+      }
+      if(prop.item) {
+        valid = prop.canBeUse();
+        if(prop.item.isSkill()) {
+          var object = prop.item.object();
+          valid = valid && $gamePlayer.getARPGBattler().canPaySkillCost(object);  
+        }
       }
     }
     this.opacity = valid ? ARPGKEY_VALID_OPACITY : ARPGKEY_INVALID_OPACITY;
@@ -1530,17 +1533,19 @@
     if(!battler.isDead()) {
       for(var i in keys) {
         var prop = $gamePlayer.getARPGProps()[i];
-        if(Input.isPressed(`arpgControl${i}`)) {
-          if(prop.canBeUse()) {
-            if((prop.item.isSkill() && battler.canPaySkillCost(prop.item.object()))
-            || (prop.item.isItem())) {
-              this.useItem($gamePlayer, prop.item);
-              prop.updateCount($gameParty.numItems(prop.item.object()));
-              prop.replayCooldown();
+        if(prop.item) {
+          if(Input.isPressed(`arpgControl${i}`)) {
+            if(prop.canBeUse()) {
+              if((prop.item.isSkill() && battler.canPaySkillCost(prop.item.object()))
+              || (prop.item.isItem())) {
+                this.useItem($gamePlayer, prop.item);
+                prop.updateCount($gameParty.numItems(prop.item.object()));
+                prop.replayCooldown();
+              }
             }
           }
+          prop.reduceWait();
         }
-        prop.reduceWait();
       }
     }
   };
