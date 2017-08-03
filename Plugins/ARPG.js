@@ -250,59 +250,98 @@
  *    在更新時把 EVALUATOR 置換成 this._arpg.ai(...) 即可
  * 
  */
+
+//==================================================================
+// 插件常數
+//==================================================================
+var parameters = PluginManager.parameters("ARPG");
+var CONTROL_KEY = String(parameters["control key"] || "A, S, D, F");
+var FOLLOWER_SKILL_COUNT = Number(parameters["follower skill count"] || 4);
+var ACTOR_DAMAGE_RANGE_TILE_COLOR = String(parameters["actor damage range tile color"] || "#FF3300");
+var ACTOR_RECOVER_RANGE_TILE_COLOR = String(parameters["actor recover range tile color"] || "#00FF33");
+var ENEMY_DAMAGE_RANGE_TILE_COLOR = String(parameters["enemy damage range tile color"] || "#3300FF");
+var ENEMY_RECOVER_RANGE_TILE_COLOR = String(parameters["enemy recover range tile color"] || "#33FF00");
+var ACTOR_DAMAGE_RANGE_TILE_CACHE_COUNT = Number(parameters["actor damage range tile cache count"] || 50);
+var ACTOR_RECOVER_RANGE_TILE_CACHE_COUNT = Number(parameters["actor recover range tile cache count"] || 50);
+var ENEMY_DAMAGE_RANGE_TILE_CACHE_COUNT = Number(parameters["enemy damage range tile cache count"] || 50);
+var ENEMY_RECOVER_RANGE_TILE_CACHE_COUNT = Number(parameters["enemy recover range tile cache count"] || 50);
+var SKILL_TILES_MARGIN = Number(parameters["skill tiles margin"] || 4);
+var SKILL_TILES_OPACITY = Number(parameters["skill tiles opacity"] || 128);
+var STATUS_SPRITE_MARGIN = Number(parameters["status sprite margin"] || 2);
+var STATUS_SPRITE_WIDTH = Number(parameters["status sprite width"] || 5);
+var HP_SPRITE_COLOR = String(parameters["hp sprite color"] || "#FF9900");
+var HP_SPRITE_BACKGROUND_COLOR = String(parameters["hp sprite background color"] || "#AA3333");
+var MP_SPRITE_COLOR = String(parameters["mp sprite color"] || "#0099FF");
+var MP_SPRITE_BACKGROUND_COLOR = String(parameters["mp sprite background color"] || "#3333AA");
+var ICON_WIDTH = Number(parameters["icon width"] || 32);
+var ICON_HEIGHT = Number(parameters["icon height"] || 32);
+var KEYS_SPRITES_MARGIN = Number(parameters["keys sprites margin"] || 50);
+var KEYS_SPRITE_FONT_SIZE = Number(parameters["keys sprite font size"] || 12);
+var KEYS_SPRITE_FONT_X = Number(parameters["keys sprite font x"] || 18);
+var KEYS_SPRITE_FONT_Y = Number(parameters["keys sprite font y"] || 6);
+var ARPGKEY_INVALID_OPACITY = Number(parameters["arpgkey invalid opacity"] || 64);
+var ARPGKEY_VALID_OPACITY = Number(parameters["arpgkey valid opacity"] || 255);
+var SKILL_NOTE_REGEX = eval(parameters["skill note regex"] || "/\$ARPG.*\S/");
+var EVALUATOR = eval(parameters["evaluator"] || "ARPGEvaluation");
+
+//==================================================================
+// 全域類別、讀檔時需要載入
+//==================================================================
+function ARPGProps() {
+  this.initialize.apply(this, arguments);
+}
+
+function ARPGCharacter() {
+  this.initialize.apply(this, arguments);
+}
+
+//==================================================================
+// ARPG A.I.
+/*------------------------------------------------------------------
+  * 在沒有外加 AI 的情況下的評估部件
+  *================================================================*/
+function ARPGEvaluation(user, target, item) {
+  var object = item.object();
+  if(object.damage.type === 3) {
+    return (target._hp < target.mhp);
+  }
+  else if (object.damage.type === 4) {
+    return (target._mp < target.mmp);
+  }
+  return true;
+};
+
+//==================================================================
+// 全域變數
+//==================================================================
+var keys = null;
+var system_visible = true;
+var createPlayerDie = function(character) {
+  return function() {
+    SceneManager.goto(Scene_Gameover);
+  };
+};
+var createFollowerDie = function(character) {
+  return function() {
+    character.setTransparent(true);
+    character.setThrough(true);
+  };
+};
+
+//==================================================================
+// 輸入按鍵的預先處理
+//==================================================================
 (function() {
-  //==================================================================
-  // 插件常數
-  //==================================================================
-  var parameters = PluginManager.parameters("ARPG");
-  var CONTROL_KEY = String(parameters["control key"] || "A, S, D, F");
-  var FOLLOWER_SKILL_COUNT = Number(parameters["follower skill count"] || 4);
-  var ACTOR_DAMAGE_RANGE_TILE_COLOR = String(parameters["actor damage range tile color"] || "#FF3300");
-  var ACTOR_RECOVER_RANGE_TILE_COLOR = String(parameters["actor recover range tile color"] || "#00FF33");
-  var ENEMY_DAMAGE_RANGE_TILE_COLOR = String(parameters["enemy damage range tile color"] || "#3300FF");
-  var ENEMY_RECOVER_RANGE_TILE_COLOR = String(parameters["enemy recover range tile color"] || "#33FF00");
-  var ACTOR_DAMAGE_RANGE_TILE_CACHE_COUNT = Number(parameters["actor damage range tile cache count"] || 50);
-  var ACTOR_RECOVER_RANGE_TILE_CACHE_COUNT = Number(parameters["actor recover range tile cache count"] || 50);
-  var ENEMY_DAMAGE_RANGE_TILE_CACHE_COUNT = Number(parameters["enemy damage range tile cache count"] || 50);
-  var ENEMY_RECOVER_RANGE_TILE_CACHE_COUNT = Number(parameters["enemy recover range tile cache count"] || 50);
-  var SKILL_TILES_MARGIN = Number(parameters["skill tiles margin"] || 4);
-  var SKILL_TILES_OPACITY = Number(parameters["skill tiles opacity"] || 128);
-  var STATUS_SPRITE_MARGIN = Number(parameters["status sprite margin"] || 2);
-  var STATUS_SPRITE_WIDTH = Number(parameters["status sprite width"] || 5);
-  var HP_SPRITE_COLOR = String(parameters["hp sprite color"] || "#FF9900");
-  var HP_SPRITE_BACKGROUND_COLOR = String(parameters["hp sprite background color"] || "#AA3333");
-  var MP_SPRITE_COLOR = String(parameters["mp sprite color"] || "#0099FF");
-  var MP_SPRITE_BACKGROUND_COLOR = String(parameters["mp sprite background color"] || "#3333AA");
-  var ICON_WIDTH = Number(parameters["icon width"] || 32);
-  var ICON_HEIGHT = Number(parameters["icon height"] || 32);
-  var KEYS_SPRITES_MARGIN = Number(parameters["keys sprites margin"] || 50);
-  var KEYS_SPRITE_FONT_SIZE = Number(parameters["keys sprite font size"] || 12);
-  var KEYS_SPRITE_FONT_X = Number(parameters["keys sprite font x"] || 18);
-  var KEYS_SPRITE_FONT_Y = Number(parameters["keys sprite font y"] || 6);
-  var ARPGKEY_INVALID_OPACITY = Number(parameters["arpgkey invalid opacity"] || 64);
-  var ARPGKEY_VALID_OPACITY = Number(parameters["arpgkey valid opacity"] || 255);
-  var SKILL_NOTE_REGEX = eval(parameters["skill note regex"] || "/\$ARPG.*\S/");
-  var EVALUATOR = eval(parameters["evaluator"] || "ARPGEvaluation");
+  keys = CONTROL_KEY.replace(/\W\s/g, "").split("");
+  keys = keys.map(function(key) {
+    return key.charCodeAt();
+  });
+  keys.forEach(function(key, index) {
+    Input.keyMapper[key] = `arpgControl${index}`;
+  });
+})();
 
-  //==================================================================
-  // 全域變數
-  //==================================================================
-  var keys = null;
-  var system_visible = true;
-
-  //==================================================================
-  // 輸入按鍵的預先處理
-  //==================================================================
-  (function() {
-    keys = CONTROL_KEY.replace(/\W\s/g, "").split("");
-    keys = keys.map(function(key) {
-      return key.charCodeAt();
-    });
-    keys.forEach(function(key, index) {
-      Input.keyMapper[key] = `arpgControl${index}`;
-    });
-  })();
-
+(function() {
   //==================================================================
   // 插件指令
   //==================================================================
@@ -317,12 +356,12 @@
             case "skill":
               var keyIndex = Number(args[2]);
               var skillId = Number(args[3]);
-              $gamePlayer.setARPGSkill(keyIndex, skillId);
+              $gamePlayer.arpg.setARPGSkill(keyIndex, skillId);
               break;
             case "item":
               var keyIndex = Number(args[2]);
               var itemId = Number(args[3]);
-              $gamePlayer.setARPGItem(keyIndex, itemId);
+              $gamePlayer.arpg.setARPGItem(keyIndex, itemId);
               break;
           }
           break;
@@ -333,14 +372,14 @@
               var followerIndex = Number(args[2]);
               var keyIndex = Number(args[3]);
               var skillId = Number(args[4]);
-              followers.follower(followerIndex).setARPGSkill(keyIndex, skillId);
+              followers.follower(followerIndex).arpg.setARPGSkill(keyIndex, skillId);
               break;
             case "item":
             var followers = $gamePlayer.followers();
               var followerIndex = Number(args[2]);
               var keyIndex = Number(args[3]);
               var itemId = Number(args[4]);
-              followers.follower(followerIndex).setARPGItem(keyIndex, itemId);
+              followers.follower(followerIndex).arpg.setARPGItem(keyIndex, itemId);
               break;
           }
           break;
@@ -349,8 +388,8 @@
             var enemy = this.getARPGBattler();
             var actions = enemy.enemy().actions;
             actions.forEach(function(action, index) {
-              event.setARPGSkill(index, action.skillId);
-            });
+              this.setARPGSkill(index, action.skillId);
+            }, this);
           }, function() {
             this.erase();
           });
@@ -358,13 +397,13 @@
         case "die":
           switch(args[1]) {
             case "erase":
-              event.setDie(function() {
-                this.erase();
+              event.arpg.setDie(function() {
+                event.erase();
               });
               break;
             case "switch":
-              event.setDie(function() {
-                var key = [$gameMap._mapId, this.eventId(), args[2]];
+              event.arpg.setDie(function() {
+                var key = [$gameMap._mapId, event.eventId(), args[2]];
                 $gameSelfSwitches.setValue(key, Number(args[3]) === 1);
               });
               break;
@@ -385,6 +424,25 @@
   };
 
   //==================================================================
+  // 角色的 ARPG 的死亡重掛
+  /*------------------------------------------------------------------
+   * 由於 die 為函數沒有被存檔保留
+   * 在重新讀檔時應該重載玩家、跟隨者的死亡函數
+   *================================================================*/
+  var _Scene_Load_onLoadSuccess = Scene_Load.prototype.onLoadSuccess;
+  Scene_Load.prototype.onLoadSuccess = function() {
+    if($gamePlayer.hasARPG()) {
+      $gamePlayer.arpg.setDie(createPlayerDie($gamePlayer));
+    }
+    $gamePlayer.followers().forEach(function(follower) {
+      if(follower.hasARPG()) {
+        follower.arpg.setDie(createFollowerDie(follower));
+      }
+    });
+    _Scene_Load_onLoadSuccess.call(this);
+  };
+
+  //==================================================================
   // 角色的 ARPG 化
   /*------------------------------------------------------------------
    * 統一在 Game_Character 的子類掛 Game_Battler 的子類
@@ -400,9 +458,7 @@
         for(var i in keys) {
           this.setARPGProps(i, null, 0);
         }
-      }, function() {
-        SceneManager.goto(Scene_Gameover);
-      });
+      }, createPlayerDie(this));
     }
   };
   
@@ -414,11 +470,88 @@
         for(var i = 0; i < FOLLOWER_SKILL_COUNT; i++) {
           this.setARPGProps(i, null, 0);
         }
-      }, function() {
-        this.setTransparent(true);
-        this.setThrough(true);
-      });
+      }, createFollowerDie(this));
     }
+    //process recover
+    if(this.hasARPG()) {
+      this.setTransparent(false);
+      this.setThrough(false);
+      if(this.arpg.getARPGBattler().isDead()) {
+        this.arpg.die()
+      }
+    }
+  };
+
+  //==================================================================
+  // ARPG 人物
+  /*------------------------------------------------------------------
+   * battler  Game_Actor, Game_Enemy   戰鬥單位
+   * props    ARPGProps                可以使用的技能或道具列表
+   * die      Function                 死亡調用的函數
+   *================================================================*/
+  ARPGCharacter.prototype.initialize = function(battler, setProps, die) {
+    this._battler = battler;
+    this._props = [];
+    this._die = die;
+    setProps.call(this);
+  };
+
+  ARPGCharacter.prototype.getARPGBattler = function() { 
+    return this._battler;
+  };
+  
+  ARPGCharacter.prototype.getARPGProps = function() { 
+    return this._props;
+  };
+
+  ARPGCharacter.prototype.setARPGProps = function(index, item, count, cooldown) { 
+    this._props[index] = new ARPGProps(item, count, cooldown);
+  };
+
+  ARPGCharacter.prototype.setARPGSkill = function(index, skillId) {
+    var object = new Game_Item();
+    var skill = $dataSkills[skillId];
+    object.setObject(skill);
+    this.setARPGProps(index, object, 0, skill.arpg.getCooldown());
+  };
+
+  ARPGCharacter.prototype.setARPGItem = function(index, itemId) {  
+    var item = $dataItems[itemId];
+    if($gameParty.hasItem(item)) {
+      var object = new Game_Item();
+      var count = $gameParty.numItems(item);
+      object.setObject(item);
+      this.setARPGProps(index, object, count, item.arpg.getCooldown());
+    }
+  };
+
+  ARPGCharacter.prototype.indexARPGProps = function(object) { 
+    var item = new Game_Item();
+    item.setObject(object);
+    for(var index in this._props) {
+      var prop = this._props[index];
+      if(prop.item) {
+        var isSkill = prop.item.isSkill() === item.isSkill();
+        var isItem = prop.item.isItem() === item.isItem();
+        var itemId = prop.item.itemId() === item.itemId();
+        if(isSkill && isItem && itemId) {
+          return index;
+        }
+      }
+    }
+    return -1;
+  };
+
+  ARPGCharacter.prototype.clearProp = function(index) {
+    this._props[index].initialize(null, 0, 0);
+  };
+
+  ARPGCharacter.prototype.setDie = function(die) {
+    this._die = die;
+  };
+
+  ARPGCharacter.prototype.die = function() {
+    this._die.call(this);
   };
 
   //==================================================================
@@ -429,10 +562,6 @@
    * wait     Number      目前冷卻時間的倒數
    * update   Boolean     請求精靈物件更新的旗幟
    *================================================================*/
-  function ARPGProps() {
-    this.initialize.apply(this, arguments);
-  }
-
   ARPGProps.prototype.initialize = function(item, count, cooldown) {
     this.item = item;
     this._count = count;
@@ -490,83 +619,16 @@
   var _Game_Character_initMembers = Game_Character.prototype.initMembers;
   Game_Character.prototype.initMembers = function() {
     _Game_Character_initMembers.call(this);
-    this._arpg = null;
+    this.arpg = null;
+  };
+
+  Game_Character.prototype.hasARPG = function() {
+    return this.arpg ? true : false;
   };
 
   Game_Character.prototype.createARPGBattler = function(battler, setProps, die) { 
     if(battler) {
-      this._arpg = {
-        battler: battler,
-        props: [],
-        die: die
-      };
-      setProps.call(this);
-    }
-  };
-
-  Game_Character.prototype.hasARPG = function() { 
-    return this._arpg ? true : false;
-  };
-
-  Game_Character.prototype.getARPGBattler = function() { 
-    return this._arpg.battler;
-  };
-  
-  Game_Character.prototype.getARPGProps = function() { 
-    return this._arpg.props;
-  };
-
-  Game_Character.prototype.setARPGProps = function(index, item, count, cooldown) { 
-    this._arpg.props[index] = new ARPGProps(item, count, cooldown);
-  };
-
-  Game_Character.prototype.setARPGSkill = function(index, skillId) {
-    var object = new Game_Item();
-    var skill = $dataSkills[skillId];
-    object.setObject(skill);
-    this.setARPGProps(index, object, 0, skill.arpg.getCooldown());
-  };
-
-  Game_Character.prototype.setARPGItem = function(index, itemId) {  
-    var item = $dataItems[itemId];
-    if($gameParty.hasItem(item)) {
-      var object = new Game_Item();
-      var count = $gameParty.numItems(item);
-      object.setObject(item);
-      this.setARPGProps(index, object, count, item.arpg.getCooldown());
-    }
-  };
-
-  Game_Character.prototype.indexARPGProps = function(object) { 
-    var item = new Game_Item();
-    item.setObject(object);
-    for(var index in this._arpg.props) {
-      var prop = this._arpg.props[index];
-      if(prop.item) {
-        var isSkill = prop.item.isSkill() === item.isSkill();
-        var isItem = prop.item.isItem() === item.isItem();
-        var itemId = prop.item.itemId() === item.itemId();
-        if(isSkill && isItem && itemId) {
-          return index;
-        }
-      }
-    }
-    return -1;
-  };
-
-  Game_Character.prototype.clearProp = function(index) {
-    this._arpg.props[index].initialize(null, 0, 0);
-  };
-
-  Game_Character.prototype.setDie = function(die) {
-    if(this.hasARPG() && die) {
-      this._arpg.die = die;
-    }
-  };
-
-  Game_Character.prototype.die = function() {
-    if(this.hasARPG()) {
-      this._arpg.die.call(this);
+      this.arpg = new ARPGCharacter(battler, setProps, die);
     }
   };
 
@@ -649,7 +711,7 @@
       if(!this._arpgHpSprite) {
         var self = this;
         var character = this._character;
-        var battler = character.getARPGBattler();
+        var battler = character.arpg.getARPGBattler();
         this._arpgHpSprite = new Sprite_ARPGStatus(character, {
           x: function() {
             return STATUS_SPRITE_MARGIN;
@@ -674,7 +736,7 @@
       if(!this._arpgMpSprite) {
         var self = this;
         var character = this._character;
-        var battler = character.getARPGBattler();
+        var battler = character.arpg.getARPGBattler();
         this._arpgMpSprite = new Sprite_ARPGStatus(character, {
           x: function() {
             return STATUS_SPRITE_MARGIN;
@@ -980,14 +1042,12 @@
     var prop = this._prop();
     if(prop.item) {
       if(prop.requestUpdate()) {
-      this.refresh();
+        this.refresh();
       }
-      if(prop.item) {
-        valid = prop.canBeUse();
-        if(prop.item.isSkill()) {
-          var object = prop.item.object();
-          valid = valid && $gamePlayer.getARPGBattler().canPaySkillCost(object);  
-        }
+      valid = prop.canBeUse();
+      if(prop.item.isSkill()) {
+        var object = prop.item.object();
+        valid = valid && $gamePlayer.arpg.getARPGBattler().canPaySkillCost(object);  
       }
     }
     this.opacity = valid ? ARPGKEY_VALID_OPACITY : ARPGKEY_INVALID_OPACITY;
@@ -1115,8 +1175,8 @@
   Spriteset_Map.prototype.createARPGKeys = function() {
     var self = this;
     var tmp = [];
-    var battler = $gamePlayer.getARPGBattler();
-    var props = $gamePlayer.getARPGProps();
+    var battler = $gamePlayer.arpg.getARPGBattler();
+    var props = $gamePlayer.arpg.getARPGProps();
     props.forEach(function(prop, index) {
       var sprite = new Sprite_ARPGKeys(function() {
         return props[index];
@@ -1230,15 +1290,15 @@
   Scene_ItemBase.prototype.arpgSetting = function(index) {
     if(this.item()) {
       var item = this.item();
-      var settedIndex = $gamePlayer.indexARPGProps(this.item());
+      var settedIndex = $gamePlayer.arpg.indexARPGProps(this.item());
       if(settedIndex >= 0) {
-        $gamePlayer.clearProp(settedIndex);
+        $gamePlayer.arpg.clearProp(settedIndex);
       }
       if(DataManager.isItem(item)) {
-        $gamePlayer.setARPGItem(index, item.id);
+        $gamePlayer.arpg.setARPGItem(index, item.id);
       }
       else if(DataManager.isSkill(item)) {
-        $gamePlayer.setARPGSkill(index, item.id);
+        $gamePlayer.arpg.setARPGSkill(index, item.id);
       }
       this._itemWindow.refresh();
     }
@@ -1270,7 +1330,7 @@
   
   function checkARPGSetted(index) {
     var item = this._data[index];
-    var settedIndex = $gamePlayer.indexARPGProps(item);
+    var settedIndex = $gamePlayer.arpg.indexARPGProps(item);
     if (item && settedIndex >= 0) {
       var rect = this.itemRect(index);
       rect.width -= this.textPadding();
@@ -1357,33 +1417,17 @@
 
   Game_ARPGProcessor.prototype.itemProcess = function(user, target, item) {
     this.repelProcess(target, item.arpg.getRepelType(), item.arpg.getRepelRate());
-    var action = new Game_Action(user.getARPGBattler());
+    var action = new Game_Action(user.arpg.getARPGBattler());
     action.setItemObject(item);
-    action.apply(target.getARPGBattler());
-    if (target.getARPGBattler().isDead()) {
-      target.die();
+    action.apply(target.arpg.getARPGBattler());
+    if (target.arpg.getARPGBattler().isDead()) {
+      target.arpg.die();
     }
     action.applyGlobal();
   };
 
   Game_ARPGProcessor.prototype.checkInScope = function(user, target, item) {
     return item.object().arpg.checkInScope(user.x, user.y, user.direction(), target.x, target.y);
-  };
-
-  //==================================================================
-  // ARPG A.I.
-  /*------------------------------------------------------------------
-   * 在沒有外加 AI 的情況下的評估部件
-   *================================================================*/
-  function ARPGEvaluation(user, target, item) {
-    var object = item.object();
-    if(object.damage.type === 3) {
-      return (target._hp < target.mhp);
-    }
-    else if (object.damage.type === 4) {
-      return (target._mp < target.mmp);
-    }
-    return true;
   };
 
   //==================================================================
@@ -1417,7 +1461,7 @@
 
   Scene_Map.prototype.getARPGEnemies = function() {
     return $gameMap.events().filter(function(event) {
-      return event.hasARPG() && !event.getARPGBattler().isDead();
+      return event.hasARPG() && !event.arpg.getARPGBattler().isDead();
     });
   };
 
@@ -1427,7 +1471,7 @@
       tmp.push(follower);
     });
     tmp = tmp.filter(function(unit) {
-      return unit.hasARPG() && !unit.getARPGBattler().isDead();
+      return unit.hasARPG() && !unit.arpg.getARPGBattler().isDead();
     });
     return tmp;
   };
@@ -1452,7 +1496,7 @@
     var ox = user.x;
     var oy = user.y;
     var scopes = object.arpg.getScopes(ox, oy, dir);
-    user.getARPGBattler().useItem(object);
+    user.arpg.getARPGBattler().useItem(object);
     this._tasks.push({
       user: user,
       item: item,
@@ -1504,7 +1548,7 @@
         var x = scope.x;
         var y = scope.y;
         var duration = object.arpg.getDuration();
-        var userType = user.getARPGBattler().isActor() ? "actor" : "enemy";
+        var userType = user.arpg.getARPGBattler().isActor() ? "actor" : "enemy";
         var skillType = ([0, 3, 4].indexOf(object.damage.type) < 0) ? "damage" : "recover";
         self.getSpriteset().requestShowTile(x, y, duration, userType, skillType);
         //check used
@@ -1529,10 +1573,10 @@
    * 用於處理玩家輸入、套用攻擊等等
    *================================================================*/
   Scene_Map.prototype.updateARPGPlayer = function() {
-    var battler = $gamePlayer.getARPGBattler();
+    var battler = $gamePlayer.arpg.getARPGBattler();
     if(!battler.isDead()) {
       for(var i in keys) {
-        var prop = $gamePlayer.getARPGProps()[i];
+        var prop = $gamePlayer.arpg.getARPGProps()[i];
         if(prop.item) {
           if(Input.isPressed(`arpgControl${i}`)) {
             if(prop.canBeUse()) {
@@ -1559,9 +1603,9 @@
     var self = this;
     units.forEach(function(unit) {
       if(unit.hasARPG()) {
-        var battler = unit.getARPGBattler();
+        var battler = unit.arpg.getARPGBattler();
         if(!battler.isDead()) {
-          var props = unit.getARPGProps();
+          var props = unit.arpg.getARPGProps();
           props.forEach(function(prop) {
             if(prop.canBeUse()) {
               var item = prop.item;
@@ -1570,7 +1614,7 @@
                 var targets = self.getTargets(tag, object.arpg.getObject());
                 targets.forEach(function(target) {
                   if(self._ARPGProcessor.checkInScope(unit, target, item)) {
-                    if(EVALUATOR(battler, target.getARPGBattler(), item)) {
+                    if(EVALUATOR(battler, target.arpg.getARPGBattler(), item)) {
                       self.useItem(unit, item);
                       prop.replayCooldown();
                     }
