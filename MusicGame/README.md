@@ -9,8 +9,8 @@
 | auto play                 | [0, 1]Z:Boolean       | 0                         | 自動演奏 |
 | auto pause                | [0, 1]Z:Boolean       | 1                         | 遊戲跟隨窗口狀態自動暫停與開始 |
 | pitch rate                | [1, inf)Z:Number      | 100                       | 演奏速率 |
-| start delay               | [0, inf)Z:Number      | 300                       | 音樂載入後，<br/>第一個音符到達前的空白預留時間 |
-| end delay                 | [0, inf)Z:Number      | 300                       | 演奏結束後，<br/>等待回到上一個場景的空白預留時間 |
+| start delay               | [0, inf)Z:Number      | 300                       | 音樂載入後<br/>第一個音符到達前的空白預留時間 |
+| end delay                 | [0, inf)Z:Number      | 300                       | 演奏結束後<br/>等待回到上一個場景的空白預留時間 |
 | BGM volume                | [0, 100]Z:Number      | 80                        | BGM 播放的音量 |
 | trackes number            | [1, inf)Z:Number      | 4                         | 設定的軌道數 |
 | trackes direction         | Refer to help:String  | left to right             | 軌道方向 |
@@ -38,9 +38,9 @@
 | variable combo            | [1, inf)Z:Number      | 5                         | 紀錄結果當前 combo 的變數 |
 | variable max combo        | [1, inf)Z:Number      | 6                         | 紀錄結果 max combo 的變數 |
 | variable score            | [1, inf)Z:Number      | 7                         | 紀錄結果 score 的變數 |
-| precision great           | [1, inf)R:Number      | 4.0                       | 判斷為 Great 的精度範圍，<br/>單位是為流速倍率 |
-| precision good            | [1, inf)R:Number      | 8.0                       | 判斷為 Good 的精度範圍，<br/>單位是為流速倍率 |
-| precision miss            | [1, inf)R:Number      | 12.0                      | 判斷為 Miss 的精度範圍，<br/>單位是為流速倍率 |
+| precision great           | [1, inf)R:Number      | 4.0                       | 判斷為 Great 的精度範圍<br/>單位是為流速倍率 |
+| precision good            | [1, inf)R:Number      | 8.0                       | 判斷為 Good 的精度範圍<br/>單位是為流速倍率 |
+| precision miss            | [1, inf)R:Number      | 12.0                      | 判斷為 Miss 的精度範圍<br/>單位是為流速倍率 |
 | score great               | (-inf, inf)R:Number   | 1000                      | 判定為 Great 的分數 |
 | score good                | (-inf, inf)R:Number   | 500                       | 判定為 Good 的分數 |
 | score miss                | (-inf, inf)R:Number   | 0                         | 判定為 Miss 的分數 |
