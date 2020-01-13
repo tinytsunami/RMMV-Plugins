@@ -50,6 +50,7 @@
  * 【插件指令】
  * WeaponPaperDoll set <weaponId> //為事件設定武器
  * 
+ * Publish by MIT License
  */
 (function() {
   //==================================================================

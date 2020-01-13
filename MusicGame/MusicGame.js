@@ -285,6 +285,7 @@
  * 【關於】
  * 這份腳本是修改《thinking at night》遊戲而來，部分效果請參考該遊戲
  * 
+ * Publish by MIT License
  */
 
 (function() {

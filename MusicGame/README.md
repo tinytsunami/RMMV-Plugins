@@ -56,7 +56,7 @@
 | bottom to top | 為音符由下至上 |
 | top to bottom | 為音符由下至上 |
 
-輸入其他內容，自動變成「left to right」
+輸入其他內容，自動變成「left to right」。
 
 ### other
 

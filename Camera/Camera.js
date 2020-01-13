@@ -28,6 +28,7 @@
  * Camera setting duration <duration> //更改縮放時間
  * Camera setting speed <speed>       //更改畫面平移速度
  * 
+ * Publish by MIT License
  */
 
 (function() {
