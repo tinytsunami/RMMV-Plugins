@@ -624,6 +624,7 @@
                                 note.connect.head = connect[track]; // 長音結尾記錄開頭
                                 connect[track] = null;              // 清除長音開頭紀錄
                             }
+                            c -= m;
                         }
                         this._notes.push(note);     // 放入音符
                         n -= m;
@@ -638,7 +639,7 @@
             delete this._score;
         }
         this._score = {
-            total: this._notes.length,
+            total: 0,
             great: 0,
             good: 0,
             miss: 0,
@@ -868,6 +869,10 @@
     };
 
     Scene_MusicGame.prototype.score = function() {
+        this._score.total = 0;
+        this._score.total += this._score.great;
+        this._score.total += this._score.good;
+        this._score.total += this._score.miss;
         $gameVariables.setValue(VARIABLE_TOTAL, this._score.total);
         $gameVariables.setValue(VARIABLE_GREAT, this._score.great);
         $gameVariables.setValue(VARIABLE_GOOD, this._score.good);
