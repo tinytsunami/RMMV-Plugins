@@ -1,5 +1,7 @@
-# RMMV 插件
+# RMMV 插件 (Develop)
 RPG 製作大師 MV 的插件腳本，目前都是小腳本居多。
+
+\* Notice! Now branch is develop, ALL plugins unpublish are unstable!
 
 # 總列表
 | 名稱 | 版本 | 最後更新 | 插件功能 |
