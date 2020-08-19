@@ -1,31 +1,31 @@
-# RMMV 插件
-RPG 製作大師 MV 的插件腳本，目前都是小腳本居多。
+# RMMV Plugins
+There are plugins on RPG Maker MV.
 
-# 總列表
-| 名稱 | 版本 | 最後更新 | 插件功能 |
+# List
+| Name | Version | Update | Description |
 |:------------------|:------|:----------|:-------------------|
-| ARPG              | v1.0  | 2017.7.30 | 使地圖上可以進行戰鬥 |
-| Camera            | v1.0  | 2017.7.23 | 簡單化對單位的縮放、平移畫面 |
-| FollowerMove      | v1.0  | 2017.7.30 | 跟隨者移動參數的調整 |
-| MaxBattleMembers  | v1.0  | 2017.7.30 | 最大參戰人數的調整 |
-| Speed             | v1.0  | 2017.7.30 | 速度破限與值修改 |
-| TrackMove         | v1.0  | 2017.7.30 | 增加追蹤目標的移動模式 |
-| WeaponPaperDoll   | v1.0  | 2017.7.30 | 地圖上可以顯示裝備武器 |
-| MusicGame         | v1.2  | 2020.1.9  | 音樂遊戲的腳本 |
+| ARPG              | v1.0  | 2017.7.30 | Battle on the map |
+| Camera            | v1.0  | 2017.7.23 | Simplify zoom and move screen |
+| FollowerMove      | v1.0  | 2017.7.30 | Adjust number of follower |
+| MaxBattleMembers  | v1.0  | 2017.7.30 | Adjust maximum battle members |
+| Speed             | v1.0  | 2017.7.30 | Breaking event move speed limit |
+| TrackMove         | v1.0  | 2017.7.30 | Add track event/player move mode |
+| WeaponPaperDoll   | v1.0  | 2017.7.30 | Show weapon on the map |
+| MusicGame         | v1.2  | 2020.1.9  | Music game |
 
-# 標示法說明
-插件參數的說明使用下列標示法：
+# Notation
+This is parameters of plugin:
 
-    <說明>（<區間><類型>:<型別名稱>）
+    <description>（<range><set>:<type>）
 
-## 例子
-| 標示 | 說明 | 
+## Examples
+| Notation | Description | 
 |:--------------------------|:---------------------------------------------------------------|
-| [0, 5]R:Number            | 介於 0 到 5 之間（包含 0 跟 5）的所有實數。需注意包含小數 |
-| (2, 3]R:Number            | 介於 2 到 3 之間（包含 3 但不含 2）的所有實數。注意不包含 2 這個數值 |
-| [0, inf)Z:Number          | 介於 0 到無限大之間（含）的所有整數，其實就是大於等於 0 的整數 |
-| [0, 1]Z:Boolean           | 介於 0 到 1 之間（包含 0 跟 1）的所有整數，其實就是布林值 |
-| CSS format(color):String  | 依據 CSS 格式的字串，格式來源為 color 的值 |
-| Refer to help:String      | 字串，實際的數值請參考插件幫助 |
-| Json:File                 | 檔案，型別為 Json |
-| Image:File                | 檔案，型別為 Image（RMMV 支援的圖檔） |
+| [0, 5]R:Number            | All real numbers from 0 to 5 (include 0 and 5) |
+| (2, 3]R:Number            | All real numbers from 2 to 3 (include 3, but exclude 2) |
+| [0, inf)Z:Number          | All integers numbers from 0 (include) to positive infinity, same as N set (natural numbers) |
+| [0, 1]Z:Boolean           | All integers numbers from 0 to 1 (include both), so it only have 0 and 1 |
+| CSS format(color):String  | Color code with CSS format |
+| Refer to help:String      | String, refer to help of this plugin |
+| Json:File                 | Filename (location), type is json |
+| Image:File                | Filename (location), type is image with RMMV support |
