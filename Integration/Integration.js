@@ -987,12 +987,6 @@
   };
 
   Game_TimeSystem.prototype.resetTint = function() {
-    let pause = false;
-    if (TIME.PAUSE_SWITCH !== null && TIME.PAUSE_SWITCH !== 0) {
-      pause = $gameSwitches.value(TIME.PAUSE_SWITCH);
-    }
-
-    if (pause) return;
 
     let minMoment = 24;
     let targetTint = null;
@@ -1075,7 +1069,11 @@
   let _Scene_Map_start = Scene_Map.prototype.start;
   Scene_Map.prototype.start = function() {
     _Scene_Map_start.call(this);
-    $gameTimeSystem.resetTint();
+    if (!($dataMap.meta.tint !== null && 
+          $dataMap.meta.tint !== undefined &&
+          $dataMap.meta.tint === "false")){
+      $gameTimeSystem.resetTint();
+    }
   };
 
   let _Scene_Map_updateMain = Scene_Map.prototype.updateMain;
