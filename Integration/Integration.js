@@ -519,7 +519,9 @@
  * Publish by MIT License + Other License
  * 
  * About "Other Licence":
- * * You agree your games/works don't use illegal materials
+ * * You agree your games/works don't use illegal materials (Theft,
+ *   unauthorized used, violation of the authorization of others, or
+ *   infringement of the rights of other materials authors)
  * 
  */ 
 
@@ -995,7 +997,9 @@
     }
 
     if (this.hour() <= minMoment) {
-      targetTint = TIME.TINTS[TIME.TINTS.length - 1];
+      if (TIME.TINTS.length > 0) {
+        targetTint = TIME.TINTS[TIME.TINTS.length - 1];
+      }
     }
     else {
       for(tint of TIME.TINTS) {
@@ -1006,7 +1010,7 @@
       }
     }
 
-    if (targetTint !== null) {
+    if (targetTint !== null && targetTint !== undefined) {
       $gameScreen.startTint([targetTint.Red, targetTint.Green, targetTint.Blue, targetTint.Gray], 1);
     }
     else {
@@ -1135,7 +1139,12 @@
     if (TIME.SHADOW) {
       let shadowSprite = [];
       $gameMap.events().forEach(function(event) {
-        shadowSprite.push(new Sprite_Shadow(event));
+        let data = $dataMap.events[event.eventId()];
+        if (!(data.meta.shadow !== null && 
+              data.meta.shadow !== undefined &&
+              data.meta.shadow === "false")) {
+          shadowSprite.push(new Sprite_Shadow(event));
+        }
       }, this);
       $gamePlayer.followers().reverseEach(function(follower) {
           shadowSprite.push(new Sprite_Shadow(follower));
