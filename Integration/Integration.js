@@ -987,6 +987,13 @@
   };
 
   Game_TimeSystem.prototype.resetTint = function() {
+    let pause = false;
+    if (TIME.PAUSE_SWITCH !== null && TIME.PAUSE_SWITCH !== 0) {
+      pause = $gameSwitches.value(TIME.PAUSE_SWITCH);
+    }
+
+    if (pause) return;
+
     let minMoment = 24;
     let targetTint = null;
 
