@@ -487,7 +487,7 @@
  * @type number
  * @max 255
  * @min 0
- * @default 64
+ * @default 253
  * @parent DialogBox
  * 
  * @param DialogBox.CloseThreshold
@@ -496,7 +496,7 @@
  * @type number
  * @max 255
  * @min 0
- * @default 32
+ * @default 2
  * @parent DialogBox
  * 
  * @help
@@ -2095,10 +2095,11 @@
   Window_Base.prototype.updateOpen = function () {
     if (this._opening) {
       this.openness += (255 - this.openness) / Math.max(DIALOG_BOX.ANIMATION_SPEED, 1);
-      if ($floating) { 
-        if (this.openness > DIALOG_BOX.OPEN_THRESHOLD) {
-          this.opacity = 255;
-        }
+      if (this.openness > DIALOG_BOX.OPEN_THRESHOLD) {
+        this.openness = 255;
+      }
+      if ($floating) {
+        this.opacity = this.openness;
       }
       if (this.isOpen()) {
         this._opening = false;
@@ -2109,10 +2110,11 @@
   Window_Base.prototype.updateClose = function () {
     if (this._closing) {
       this.openness += (0 - this.openness) / Math.max(DIALOG_BOX.ANIMATION_SPEED, 1);
-      if ($floating) { 
-        if (this.openness < DIALOG_BOX.CLOSE_THRESHOLD) {
-          this.opacity = 0;
-        }
+      if (this.openness < DIALOG_BOX.CLOSE_THRESHOLD) {
+        this.openness = 0;
+      }
+      if ($floating) {
+        this.opacity = this.openness;
       }
       if (this.isClosed()) {
         this._closing = false;
