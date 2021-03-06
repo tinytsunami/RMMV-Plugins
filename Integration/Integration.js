@@ -505,8 +505,12 @@
  *  - F10：遊戲減速一半
  *  - F11：遊戲加速一倍 
  * 
+ * # 浮動對話框指令
+ *  - DialogBox open    // 開啟浮動對話框（啟用時預設）
+ *  - DialogBox close   // 關閉浮動對話框
+ * 
  * # 時間事件指令
- *  - Time set <h>:<m>          // 設定目前的時間（24小時制）
+ *  - Time set <h>:<m> // 設定目前的時間（24小時制）
  * 
  * # 鏡頭事件指令
  *  - Camera story                               //鏡頭模仿電影比例（2.35:1）
@@ -518,6 +522,9 @@
  * # 時間系統註釋
  *  - 事件註釋加上 <shadow:false> 可以關閉該事件的影子
  *  - 地圖註釋加上 <tint:false> 可以關閉該地圖的色調
+ * 
+ * # 浮動對話框指令
+ *  - 訊息中加入 \D[<id>] 可以將浮動對話框指定給特定事件
  * 
  * Publish by MIT License + Other License
  * 
@@ -1968,14 +1975,30 @@
   if (!!!DIALOG_BOX.ENABLE) return;
 
   //======================================================================
-  // Game Message
+  // Constnat
   //======================================================================
-  let _Game_Message_clear = Game_Message.prototype.clear;
-  Game_Message.prototype.clear = function () {
-    _Game_Message_clear.call(this);
-    this._character = null;
+  let $floating = true;
+
+  let _Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+  Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    _Game_Interpreter_pluginCommand.call(this, command, args);
+    if (command === 'DialogBox') {
+      switch (args[0]) {
+        case 'open':
+          $floating = true;
+          break;
+        case 'close':
+          $floating = false;
+          break;
+        default:
+          throw Error('DialogBox plugin command error.');
+      }
+    }
   };
 
+  //======================================================================
+  // Game Message
+  //======================================================================
   Game_Message.prototype.character = function () {
     return this._character;
   };
@@ -2055,7 +2078,7 @@
     }.bind(this));
     return text;
   };
-  
+
   Window_Base.prototype.removeEscapeCode = function (text) {
     text = text.replace(/\\/g, '\x1b');
     text = text.replace(/\x1b\x1b/g, '\\');
@@ -2072,8 +2095,10 @@
   Window_Base.prototype.updateOpen = function () {
     if (this._opening) {
       this.openness += (255 - this.openness) / Math.max(DIALOG_BOX.ANIMATION_SPEED, 1);
-      if (this.openness > DIALOG_BOX.OPEN_THRESHOLD) {
-        this.opacity = 255;
+      if ($floating) { 
+        if (this.openness > DIALOG_BOX.OPEN_THRESHOLD) {
+          this.opacity = 255;
+        }
       }
       if (this.isOpen()) {
         this._opening = false;
@@ -2084,8 +2109,10 @@
   Window_Base.prototype.updateClose = function () {
     if (this._closing) {
       this.openness += (0 - this.openness) / Math.max(DIALOG_BOX.ANIMATION_SPEED, 1);
-      if (this.openness < DIALOG_BOX.CLOSE_THRESHOLD) {
-        this.opacity = this.openness;
+      if ($floating) { 
+        if (this.openness < DIALOG_BOX.CLOSE_THRESHOLD) {
+          this.opacity = 0;
+        }
       }
       if (this.isClosed()) {
         this._closing = false;
@@ -2138,10 +2165,18 @@
     _Window_Message_update.call(this);
   };
 
+  let _Window_Message_updatePlacement = Window_Message.prototype.updatePlacement;
   Window_Message.prototype.updatePlacement = function () {
     let character = $gamePlayer;
     if ($gameMessage.hasCharacter()) {
       character = $gameMessage.character();
+    }
+    if (!$floating) {
+      this.x = 0;
+      this.width = this.windowWidth();
+      this.height = this.windowHeight();
+      _Window_Message_updatePlacement.call(this);
+      return;
     }
     if (this._textState) {
       let texts = this._textState.text.split("\n");
