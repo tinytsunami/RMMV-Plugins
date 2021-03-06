@@ -515,6 +515,9 @@
  *  - Camera focus player <zoom> <duration>      //鏡頭關注到指定編號的事件
  *  - Camera clear <duration>                    //復原鏡頭狀態
  * 
+ * # 時間系統註釋
+ *  - 事件註釋加上 <shadow:false> 可以關閉該事件的影子
+ *  - 地圖註釋加上 <tint:false> 可以關閉該地圖的色調
  * 
  * Publish by MIT License + Other License
  * 
@@ -980,6 +983,9 @@
 
       for(tint of TIME.TINTS) {
         if (tint.Moment === this.hour() && this.minute() === 0) {
+          if ($dataMap.meta.tint !== null && $dataMap.meta.tint !== undefined && $dataMap.meta.tint === "false") {
+            return;
+          }
           $gameScreen.startTint([tint.Red, tint.Green, tint.Blue, tint.Gray], tint.Duration * TIME.MINUTE_FRAMES);
         }
       }
@@ -987,6 +993,9 @@
   };
 
   Game_TimeSystem.prototype.resetTint = function() {
+    if ($dataMap.meta.tint !== null && $dataMap.meta.tint !== undefined && $dataMap.meta.tint === "false") {
+      return;
+    }
 
     let minMoment = 24;
     let targetTint = null;
@@ -1069,11 +1078,7 @@
   let _Scene_Map_start = Scene_Map.prototype.start;
   Scene_Map.prototype.start = function() {
     _Scene_Map_start.call(this);
-    if (!($dataMap.meta.tint !== null && 
-          $dataMap.meta.tint !== undefined &&
-          $dataMap.meta.tint === "false")){
-      $gameTimeSystem.resetTint();
-    }
+    $gameTimeSystem.resetTint();
   };
 
   let _Scene_Map_updateMain = Scene_Map.prototype.updateMain;
@@ -1145,9 +1150,7 @@
       let shadowSprite = [];
       $gameMap.events().forEach(function(event) {
         let data = $dataMap.events[event.eventId()];
-        if (!(data.meta.shadow !== null && 
-              data.meta.shadow !== undefined &&
-              data.meta.shadow === "false")) {
+        if (!(data.meta.shadow !== null && data.meta.shadow !== undefined &&data.meta.shadow === "false")) {
           shadowSprite.push(new Sprite_Shadow(event));
         }
       }, this);
