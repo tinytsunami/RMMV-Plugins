@@ -516,7 +516,10 @@
  *  - Camera clear <duration>                    //復原鏡頭狀態
  * 
  * 
- * Publish by MIT License
+ * Publish by MIT License + Other License
+ * 
+ * About "Other Licence":
+ * * You agree your games/works don't use illegal materials
  * 
  */ 
 
