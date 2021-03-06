@@ -1,6 +1,6 @@
 /*:
  * @plugindesc 羊羽系遊戲：基本設定、視覺類插件整合包。
- * @author 羊羽
+ * @author 羊羽 
  * 
  * @param Base
  * @text 基本設定
@@ -514,6 +514,9 @@
  *  - Camera focus event <id> <zoom> <duration>  //鏡頭關注到指定編號的事件（id=0時為該事件）
  *  - Camera focus player <zoom> <duration>      //鏡頭關注到指定編號的事件
  *  - Camera clear <duration>                    //復原鏡頭狀態
+ * 
+ * 
+ * Publish by MIT License
  * 
  */ 
 
