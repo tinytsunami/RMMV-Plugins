@@ -615,7 +615,7 @@
   BASE.MOUSE_IMAGE          = String(parameters["Base.MouseImage"]);
   BASE.ENABLE_WASD          = Boolean(parameters["Base.EnableWASD"] === "true");
   BASE.ANIMATION_RATE       = Number(parameters["Base.AnimationRate"]);
-  BASE.ENABLE_FAST_FORWARD  = Number(parameters["Base.EnableFastForward"]);
+  BASE.ENABLE_FAST_FORWARD  = Boolean(parameters["Base.EnableFastForward"] === 'true');
   BASE.FULLSCREEN           = Boolean(parameters["Base.Fullscreen"] === "true");
   BASE.MESSAGE_SE           = String(parameters["Base.MessageSE"]);
 
@@ -652,6 +652,9 @@
 
   if (!!!BASE.ENABLE_FAST_FORWARD) {
     Scene_Map.prototype.isFastForward = function() {
+      return false;
+    };
+    Window_Message.prototype.updateShowFast = function() {
       return false;
     };
   }
