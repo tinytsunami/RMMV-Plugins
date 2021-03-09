@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 羊羽系遊戲：基本設定、視覺類插件整合包。
+ * @plugindesc 羊羽系遊戲：基本設定、視覺類插件整合包。(v1.1)
  * @author 羊羽 
  * 
  * @param Base
@@ -1676,8 +1676,6 @@
   Game_Map.prototype.startFocus = function(x, y, duration, callback) {
     this._displayTargetX = x - this.screenTileX() / 2 + 0.5;
     this._displayTargetY = y - this.screenTileY() / 2 + 0.5;
-    this._displayTargetX = this._displayTargetX.clamp(0, this.width() - this.screenTileX());
-    this._displayTargetY = this._displayTargetY.clamp(0, this.height() - this.screenTileY());
     this._focusDuration = duration;
     this._focusCallback = callback;
   };
